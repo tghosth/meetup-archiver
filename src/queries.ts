@@ -18,7 +18,7 @@ export function getGroupEventsQuery(
         id
         name
         urlname
-        events(input: { first: $first, after: $after, filter: { status: $status } }) {
+        events(first: $first, after: $after, status: $status) {
           totalCount
           pageInfo {
             endCursor
@@ -33,19 +33,6 @@ export function getGroupEventsQuery(
               duration
               eventUrl
               eventType
-              going
-              maxTickets
-              isOnline
-              venue {
-                id
-                name
-                address
-                city
-                state
-                country
-                lat
-                lng
-              }
               featuredEventPhoto {
                 id
                 baseUrl

@@ -207,8 +207,13 @@ export class MeetupClient {
     // Fetch past events
     const pastResult = await this.fetchAllEvents(groupUrlname, 'PAST');
 
-    // Fetch upcoming events
-    const upcomingResult = await this.fetchAllEvents(groupUrlname, 'UPCOMING');
+    // Try to fetch upcoming events, but if it fails just continue with past events only
+    let upcomingResult = { events: [] as Event[], groupId: pastResult.groupId, groupName: pastResult.groupName };
+    try {
+      upcomingResult = await this.fetchAllEvents(groupUrlname, 'UPCOMING');
+    } catch (error) {
+      console.log('Note: Could not fetch upcoming events (may not be available for this API version)\n');
+    }
 
     // Combine and sort by date
     const allEvents = [...pastResult.events, ...upcomingResult.events];
