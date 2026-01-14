@@ -121,6 +121,20 @@ npm run build
 npm start <group-urlname>
 ```
 
+### Render HTML from an existing JSON archive
+
+Convert a generated archive JSON into a nicely formatted HTML report (most recent first):
+
+```bash
+# Example: render the OWASP Israel archive you just created
+npm run render -- output/owasp-israel-2026-01-14T07-02-25-976Z.json
+
+# Optional: specify a custom output path
+npm run render -- output/owasp-israel-2026-01-14T07-02-25-976Z.json ./output-html/owasp-israel.html
+```
+
+The HTML will be written to `output-html/<archive-name>.html` by default.
+
 ### Finding the Group URL Name
 
 The group URL name is the identifier in the Meetup.com URL. For example:
