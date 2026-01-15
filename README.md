@@ -295,11 +295,6 @@ npm test
 npm run test:watch
 ```
 
-**Run tests with coverage report:**
-```bash
-npm run test:coverage
-```
-
 The test suite includes:
 - **Unit tests** for utility functions (file operations, formatting, metadata)
 - **Integration tests** for the Meetup API client (with mocked requests)
