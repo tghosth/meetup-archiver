@@ -281,6 +281,38 @@ npm run dev -- <group-urlname>
 npm start <group-urlname>
 ```
 
+### Running Tests
+
+This project includes comprehensive unit tests to ensure functionality works correctly.
+
+**Run all tests:**
+```bash
+npm test
+```
+
+**Run tests in watch mode (for development):**
+```bash
+npm run test:watch
+```
+
+**Run tests with coverage report:**
+```bash
+npm run test:coverage
+```
+
+The test suite includes:
+- **Unit tests** for utility functions (file operations, formatting, metadata)
+- **Integration tests** for the Meetup API client (with mocked requests)
+- **Tests** for HTML rendering and sanitization
+
+### Continuous Integration
+
+The project uses GitHub Actions to automatically run tests on:
+- Every push to `main` or `develop` branches
+- Every pull request targeting `main` or `develop` branches
+
+Tests run on multiple Node.js versions (18.x and 20.x) to ensure compatibility.
+
 ## Technologies Used
 
 - **TypeScript** - Type-safe JavaScript
@@ -288,6 +320,8 @@ npm start <group-urlname>
 - **Axios** - HTTP client for GraphQL requests
 - **Meetup GraphQL API** - Official Meetup API
 - **dotenv** - Environment variable management
+- **Jest** - Testing framework
+- **ts-jest** - TypeScript support for Jest
 
 ## License
 
