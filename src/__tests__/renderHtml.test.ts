@@ -86,7 +86,7 @@ describe('renderHtml', () => {
 
   describe('Date formatting', () => {
     it('should format valid ISO dates', () => {
-      const isoDate = '2026-01-15T10:30:00.000Z';
+      const isoDate = '2000-01-15T10:30:00.000Z';
       const date = new Date(isoDate);
       
       expect(date.getTime()).not.toBeNaN();
