@@ -9,6 +9,7 @@ dist/
 
 # Output files
 output/
+output-html/
 
 # IDE
 .vscode/

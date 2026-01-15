@@ -114,7 +114,7 @@ function renderEventCard(ev: Event): string {
         <div class="pill">RSVPs: ${rsvpCount}</div>
       </header>
       ${photo ? `<img class="hero" src="${photo}" alt="${title}" />` : ''}
-      <p class="desc">${description}</p>
+      <div class="desc">${description}</div>
       <p class="meta">Hosts: ${hosts}</p>
     </article>
   `;
@@ -190,7 +190,7 @@ function renderHtml(data: ArchiveOutput): string {
       align-items: flex-start;
       gap: 12px;
     }
-    .card h2 { margin: 4px 0 6px 0; }
+    .card h2 { margin: 4px 0 6px 0; font-size: 1.5em; }
     .card h2 a { color: var(--text); text-decoration: none; }
     .card h2 a:hover { color: var(--accent); }
     .eyebrow { margin: 0; color: var(--accent); font-weight: 600; letter-spacing: 0.5px; }
@@ -211,6 +211,18 @@ function renderHtml(data: ArchiveOutput): string {
       display: block;
     }
     .desc { margin: 8px 0; line-height: 1.5; color: var(--text); }
+    .desc h1, .desc h2, .desc h3, .desc h4, .desc h5, .desc h6 {
+      font-size: 0.95em;
+      margin: 12px 0 8px 0;
+      font-weight: 600;
+    }
+    .desc h1 { font-size: 1em; }
+    .desc p { margin: 8px 0; }
+    .desc ul, .desc ol { margin: 8px 0; padding-left: 24px; }
+    .desc code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+    .desc pre { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; overflow-x: auto; }
+    .desc a { color: var(--accent); text-decoration: underline; }
+    .desc a:hover { color: var(--text); }
     .meta { margin: 8px 0 0 0; color: var(--muted); font-size: 14px; }
     @media (max-width: 700px) {
       header.page { flex-direction: column; align-items: flex-start; }
