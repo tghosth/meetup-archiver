@@ -174,10 +174,19 @@ export class MeetupClient {
       }
 
       const fetchedEvents = events.edges.map((edge) => edge.node);
-      allEvents.push(...fetchedEvents);
+      
+      // Filter out events hosted by "OWASP® Foundation"
+      const filteredEvents = fetchedEvents.filter(event => {
+        const hasFoundationHost = event.eventHosts?.some(
+          host => host.name === 'OWASP® Foundation'
+        );
+        return !hasFoundationHost;
+      });
+      
+      allEvents.push(...filteredEvents);
 
       console.log(
-        `  Page ${pageCount}: Fetched ${fetchedEvents.length} events (Total: ${allEvents.length}/${events.totalCount})`
+        `  Page ${pageCount}: Fetched ${fetchedEvents.length} events, ${filteredEvents.length} after filtering (Total: ${allEvents.length}/${events.totalCount})`
       );
 
       hasNextPage = events.pageInfo.hasNextPage;
