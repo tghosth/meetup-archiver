@@ -102,9 +102,10 @@ function renderEventCard(ev: Event): string {
   const photo = ev.featuredEventPhoto?.baseUrl
     ? `${ev.featuredEventPhoto.baseUrl}${ev.featuredEventPhoto.id}/676x380.jpg`
     : null;
+  const eventId = `event-${ev.id}`;
 
   return `
-    <article class="card">
+    <article class="card" id="${eventId}">
       <header>
         <div>
           <p class="eyebrow">${escapeHtml(ev.eventType || 'EVENT')}</p>
@@ -120,11 +121,30 @@ function renderEventCard(ev: Event): string {
   `;
 }
 
+function renderIndex(events: Event[]): string {
+  const items = events.map(ev => {
+    const title = escapeHtml(ev.title);
+    const date = formatDate(ev.dateTime);
+    const eventId = `event-${ev.id}`;
+    return `<li><a href="#${eventId}">${title}</a><span class="index-date">${escapeHtml(date)}</span></li>`;
+  }).join('\n        ');
+  
+  return `
+    <nav class="index">
+      <h2>Event Index</h2>
+      <ol>
+        ${items}
+      </ol>
+    </nav>
+  `;
+}
+
 function renderHtml(data: ArchiveOutput): string {
   const eventsSorted = [...data.events].sort(
     (a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()
   );
 
+  const index = renderIndex(eventsSorted);
   const cards = eventsSorted.map(renderEventCard).join('\n');
 
   return `<!DOCTYPE html>
@@ -224,6 +244,53 @@ function renderHtml(data: ArchiveOutput): string {
     .desc a { color: var(--accent); text-decoration: underline; }
     .desc a:hover { color: var(--text); }
     .meta { margin: 8px 0 0 0; color: var(--muted); font-size: 14px; }
+    .index {
+      max-width: 1000px;
+      margin: 0 auto 32px auto;
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 14px;
+      padding: 20px 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    }
+    .index h2 {
+      margin: 0 0 16px 0;
+      color: var(--accent);
+      font-size: 1.3em;
+    }
+    .index ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: event-counter;
+    }
+    .index li {
+      counter-increment: event-counter;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .index li:last-child { border-bottom: none; }
+    .index li::before {
+      content: counter(event-counter) ".";
+      color: var(--muted);
+      font-weight: 600;
+      min-width: 32px;
+    }
+    .index a {
+      color: var(--text);
+      text-decoration: none;
+      flex: 1;
+    }
+    .index a:hover { color: var(--accent); text-decoration: underline; }
+    .index-date {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
     @media (max-width: 700px) {
       header.page { flex-direction: column; align-items: flex-start; }
       .stats { grid-template-columns: repeat(2, auto); text-align: left; }
@@ -245,6 +312,7 @@ function renderHtml(data: ArchiveOutput): string {
       <div>Archived:</div><strong>${escapeHtml(data.metadata.archivedAt)}</strong>
     </div>
   </header>
+  ${index}
   <main>
     ${cards}
   </main>
