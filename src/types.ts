@@ -45,6 +45,60 @@ export interface Member {
   name: string;
 }
 
+export interface Topic {
+  id: string;
+  name: string;
+}
+
+export interface TopicEdge {
+  node: Topic;
+}
+
+export interface TopicsConnection {
+  edges: TopicEdge[];
+}
+
+export interface SpeakerDetails {
+  name: string;
+  description?: string;
+  photo?: Photo;
+  socialNetworks?: Array<{
+    network: string;
+    url: string;
+  }>;
+}
+
+export interface EventPhoto {
+  id: string;
+  baseUrl: string;
+}
+
+export interface EventPhotoEdge {
+  node: EventPhoto;
+}
+
+export interface EventPhotoAlbum {
+  id?: string;
+  photoCount?: number;
+  title?: string;
+  photos?: {
+    edges: EventPhotoEdge[];
+  };
+}
+
+export interface VenueDetails {
+  id?: string;
+  name?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
+  lat?: number;
+  lon?: number;
+  venueType?: string;
+}
+
 export interface RsvpNode {
   id: string;
   member: Member;
@@ -64,16 +118,24 @@ export interface Event {
   title: string;
   description?: string;
   dateTime: string;
+  endTime?: string;
+  createdTime?: string;
   duration?: string;
   eventUrl: string;
   eventType?: string;
+  status?: string;
   venue?: Venue;
+  venues?: VenueDetails[];
   featuredEventPhoto?: Photo;
+  photoAlbum?: EventPhotoAlbum;
   eventHosts?: EventHost[];
   rsvps?: RsvpConnection;
   going?: number;
   maxTickets?: number;
   isOnline?: boolean;
+  howToFindUs?: string;
+  topics?: TopicsConnection;
+  speakerDetails?: SpeakerDetails;
 }
 
 export interface EventEdge {

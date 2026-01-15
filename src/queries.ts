@@ -30,12 +30,50 @@ export function getGroupEventsQuery(
               title
               description
               dateTime
+              endTime
+              createdTime
               duration
               eventUrl
               eventType
+              status
+              maxTickets
+              howToFindUs
               featuredEventPhoto {
                 id
                 baseUrl
+              }
+              photoAlbum {
+                id
+                photoCount
+                title
+              }
+              topics {
+                edges {
+                  node {
+                    id
+                    name
+                  }
+                }
+              }
+              speakerDetails {
+                name
+                description
+                photo {
+                  id
+                  baseUrl
+                }
+              }
+              venues {
+                id
+                name
+                address
+                city
+                state
+                country
+                postalCode
+                lat
+                lon
+                venueType
               }
               eventHosts {
                 memberId

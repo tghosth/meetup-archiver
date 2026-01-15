@@ -270,31 +270,137 @@ export class MeetupClient {
   }
 
   /**
+   * Fetch photo album images via GraphQL persisted query
+   */
+  private async fetchPhotoAlbumImages(eventId: string, photoCount: number): Promise<Array<{url: string, id: string}>> {
+    try {
+      // Full GraphQL query for photo album - uses different endpoint (gql2)
+      const query = `
+        query getEventByIdPhotoAlbum($eventId: ID!, $number: Int!) {
+          event(id: $eventId) {
+            id
+            photoAlbum {
+              id
+              photoCount
+              photoSample(number: $number) {
+                id
+                baseUrl
+                highResUrl
+              }
+            }
+          }
+        }
+      `;
+
+      const response = await axios.post(
+        'https://www.meetup.com/gql2',
+        {
+          query: query,
+          operationName: 'getEventByIdPhotoAlbum',
+          variables: {
+            eventId: eventId,
+            number: photoCount,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      if (response.data.errors) {
+        return [];
+      }
+
+      const photoAlbumData = response.data.data?.event?.photoAlbum;
+      if (!photoAlbumData?.photoSample) {
+        return [];
+      }
+
+      const photos: Array<{url: string, id: string}> = [];
+      for (const photo of photoAlbumData.photoSample) {
+        if (photo?.highResUrl && photo?.id) {
+          photos.push({ url: photo.highResUrl, id: photo.id });
+        }
+      }
+
+      return photos;
+    } catch (error) {
+      console.warn(`  ⚠️  Failed to fetch photo album for event ${eventId}`);
+      if (error instanceof Error) {
+        console.warn(`    Error: ${error.message}`);
+      }
+      return [];
+    }
+  }
+
+  /**
    * Download images for events and embed them as base64
    */
   private async embedEventImages(events: Event[]): Promise<Event[]> {
     console.log('\nDownloading and embedding images...');
-    let downloadCount = 0;
+    let featuredCount = 0;
+    let albumPhotoCount = 0;
     
     for (const event of events) {
+      // Download featured event photo
       if (event.featuredEventPhoto?.baseUrl && event.featuredEventPhoto?.id) {
         const imageUrl = `${event.featuredEventPhoto.baseUrl}${event.featuredEventPhoto.id}/676x380.jpg`;
         const base64Image = await this.downloadImageAsBase64(imageUrl);
         
         if (base64Image) {
-          // Replace the baseUrl with the data URI
           event.featuredEventPhoto.baseUrl = base64Image;
-          // Clear the id since we're now using a complete data URI
           event.featuredEventPhoto.id = '';
-          downloadCount++;
+          featuredCount++;
         }
         
-        // Small delay between downloads to be nice to the server
         await this.delay(50);
+      }
+      
+      // Fetch and download photo album images if album exists
+      if (event.photoAlbum?.id && event.photoAlbum.photoCount > 0) {
+        const expectedCount = event.photoAlbum.photoCount;
+        console.log(`  Fetching ${expectedCount} album photos for: ${event.title.substring(0, 50)}...`);
+        const photos = await this.fetchPhotoAlbumImages(event.id, expectedCount);
+        
+        if (photos.length > 0) {
+          console.log(`    Found ${photos.length} photos (expected ${expectedCount})`);
+          
+          const albumPhotos: EventPhoto[] = [];
+          const limit = Math.min(photos.length, 20); // Limit to 20 photos per album
+          
+          for (let i = 0; i < limit; i++) {
+            const photo = photos[i];
+            const base64Image = await this.downloadImageAsBase64(photo.url);
+            if (base64Image) {
+              albumPhotos.push({
+                id: photo.id,
+                baseUrl: base64Image,
+              });
+              albumPhotoCount++;
+            }
+            await this.delay(50);
+          }
+          
+          // Add photos to the album structure
+          if (albumPhotos.length > 0) {
+            (event.photoAlbum as any).photos = { edges: albumPhotos.map(p => ({ node: p })) };
+            
+            if (albumPhotos.length < expectedCount) {
+              console.log(`    ⚠️  Only retrieved ${albumPhotos.length}/${expectedCount} photos`);
+            }
+          }
+        } else {
+          console.log(`    ⚠️  No photos found (expected ${expectedCount})`);
+        }
+        
+        await this.delay(100);
       }
     }
     
-    console.log(`✅ Downloaded and embedded ${downloadCount} images\n`);
+    console.log(`✅ Downloaded and embedded ${featuredCount} featured images and ${albumPhotoCount} album photos\n`);
     return events;
   }
 }
