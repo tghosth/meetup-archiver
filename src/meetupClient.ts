@@ -231,8 +231,11 @@ export class MeetupClient {
         new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime()
     );
 
+    // Download and embed images as base64
+    const eventsWithImages = await this.embedEventImages(allEvents);
+
     return {
-      events: allEvents,
+      events: eventsWithImages,
       groupId: pastResult.groupId,
       groupName: pastResult.groupName,
       pastCount: pastResult.events.length,
@@ -245,5 +248,53 @@ export class MeetupClient {
    */
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Download image and convert to base64 data URI
+   */
+  private async downloadImageAsBase64(url: string): Promise<string | null> {
+    try {
+      const response = await axios.get(url, {
+        responseType: 'arraybuffer',
+        timeout: 10000,
+      });
+      
+      const contentType = response.headers['content-type'] || 'image/jpeg';
+      const base64 = Buffer.from(response.data, 'binary').toString('base64');
+      return `data:${contentType};base64,${base64}`;
+    } catch (error) {
+      console.warn(`  ⚠️  Failed to download image: ${url}`);
+      return null;
+    }
+  }
+
+  /**
+   * Download images for events and embed them as base64
+   */
+  private async embedEventImages(events: Event[]): Promise<Event[]> {
+    console.log('\nDownloading and embedding images...');
+    let downloadCount = 0;
+    
+    for (const event of events) {
+      if (event.featuredEventPhoto?.baseUrl && event.featuredEventPhoto?.id) {
+        const imageUrl = `${event.featuredEventPhoto.baseUrl}${event.featuredEventPhoto.id}/676x380.jpg`;
+        const base64Image = await this.downloadImageAsBase64(imageUrl);
+        
+        if (base64Image) {
+          // Replace the baseUrl with the data URI
+          event.featuredEventPhoto.baseUrl = base64Image;
+          // Clear the id since we're now using a complete data URI
+          event.featuredEventPhoto.id = '';
+          downloadCount++;
+        }
+        
+        // Small delay between downloads to be nice to the server
+        await this.delay(50);
+      }
+    }
+    
+    console.log(`✅ Downloaded and embedded ${downloadCount} images\n`);
+    return events;
   }
 }

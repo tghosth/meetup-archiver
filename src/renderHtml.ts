@@ -99,8 +99,11 @@ function renderEventCard(ev: Event): string {
     ? renderMarkdown(ev.description)
     : 'No description provided.';
   const date = formatDate(ev.dateTime);
+  // Check if the baseUrl is already a data URI (embedded image) or a regular URL
   const photo = ev.featuredEventPhoto?.baseUrl
-    ? `${ev.featuredEventPhoto.baseUrl}${ev.featuredEventPhoto.id}/676x380.jpg`
+    ? (ev.featuredEventPhoto.baseUrl.startsWith('data:')
+        ? ev.featuredEventPhoto.baseUrl
+        : `${ev.featuredEventPhoto.baseUrl}${ev.featuredEventPhoto.id}/676x380.jpg`)
     : null;
   const eventId = `event-${ev.id}`;
 
