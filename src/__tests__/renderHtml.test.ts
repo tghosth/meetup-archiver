@@ -136,7 +136,6 @@ describe('renderHtml', () => {
     it('should decode entities when rendering plain text', () => {
       // When you need to decode entities, you'd typically use a different approach
       const input = '&amp;';
-      const div = { innerHTML: input };
       // In a browser context: div.textContent would give "&"
       // In Node.js, we just verify the entity is present
       expect(input).toBe('&amp;');
