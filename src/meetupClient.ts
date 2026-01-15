@@ -5,6 +5,7 @@ import {
   MeetupApiResponse,
   GroupByUrlnameData,
   Event,
+  EventPhoto,
   EventStatus,
 } from './types';
 import { getGroupEventsQuery, getSelfQuery } from './queries';
@@ -360,8 +361,8 @@ export class MeetupClient {
       }
       
       // Fetch and download photo album images if album exists
-      if (event.photoAlbum?.id && event.photoAlbum.photoCount > 0) {
-        const expectedCount = event.photoAlbum.photoCount;
+      if (event.photoAlbum?.id && event.photoAlbum.photoCount && event.photoAlbum.photoCount > 0) {
+        const expectedCount: number = event.photoAlbum.photoCount;
         console.log(`  Fetching ${expectedCount} album photos for: ${event.title.substring(0, 50)}...`);
         const photos = await this.fetchPhotoAlbumImages(event.id, expectedCount);
         
