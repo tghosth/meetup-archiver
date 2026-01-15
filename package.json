@@ -10,7 +10,12 @@
     "archive": "tsx src/index.ts",
     "render": "tsx src/renderHtml.ts"
   },
-  "keywords": ["meetup", "archive", "graphql", "api"],
+  "keywords": [
+    "meetup",
+    "archive",
+    "graphql",
+    "api"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -21,6 +26,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.5",
+    "@types/sanitize-html": "^2.16.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   }

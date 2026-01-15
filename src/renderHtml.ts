@@ -51,7 +51,7 @@ function unescapeCommonMarkdown(input: string): string {
 function renderMarkdown(md: string): string {
   const decoded = decodeKnownEntities(md);
   const unescaped = unescapeCommonMarkdown(decoded);
-  const html = marked.parse(unescaped, { breaks: true });
+  const html = marked.parse(unescaped, { breaks: true }) as string;
   return sanitizeHtml(html, {
     allowedTags: [
       'h1','h2','h3','h4','h5','h6',
@@ -66,7 +66,7 @@ function renderMarkdown(md: string): string {
     },
     allowedSchemes: ['http','https','mailto'],
     transformTags: {
-      a: (tagName, attribs) => ({
+      a: (tagName: string, attribs: any) => ({
         tagName: 'a',
         attribs: {
           ...attribs,
@@ -91,6 +91,43 @@ function formatDate(iso: string): string {
   });
 }
 
+function renderPhotoAlbum(album: any): string {
+  if (!album || !album.photos || !album.photos.edges || album.photos.edges.length === 0) {
+    return '';
+  }
+
+  const title = album.title ? escapeHtml(album.title) : 'Photo Album';
+  const photoItems = album.photos.edges
+    .map((edge: any, index: number) => {
+      const photo = edge.node;
+      if (!photo || !photo.baseUrl) return '';
+      
+      // Check if baseUrl is a data URI or needs dimension suffix
+      const thumbnailUrl = photo.baseUrl.startsWith('data:')
+        ? photo.baseUrl
+        : `${photo.baseUrl}${photo.id}/200x150.jpg`;
+      
+      const fullUrl = photo.baseUrl.startsWith('data:')
+        ? photo.baseUrl
+        : `${photo.baseUrl}${photo.id}/800x600.jpg`;
+      
+      return `<img src="${thumbnailUrl}" alt="Album photo" class="gallery-thumb" data-full="${fullUrl}" data-index="${index}" onclick="openLightbox('${fullUrl}', ${index})" />`;
+    })
+    .filter((img: string) => img !== '')
+    .join('\n        ');
+
+  if (!photoItems) return '';
+
+  return `
+    <div class="photo-album">
+      <h3 class="album-title">${title}</h3>
+      <div class="photo-gallery">
+        ${photoItems}
+      </div>
+    </div>
+  `;
+}
+
 function renderEventCard(ev: Event): string {
   const rsvpCount = ev.rsvps?.totalCount ?? 0;
   const hosts = ev.eventHosts?.map((h) => escapeHtml(h.name)).join(', ') || 'N/A';
@@ -106,6 +143,7 @@ function renderEventCard(ev: Event): string {
         : `${ev.featuredEventPhoto.baseUrl}${ev.featuredEventPhoto.id}/676x380.jpg`)
     : null;
   const eventId = `event-${ev.id}`;
+  const photoAlbumHtml = renderPhotoAlbum(ev.photoAlbum);
 
   return `
     <article class="card" id="${eventId}">
@@ -119,6 +157,7 @@ function renderEventCard(ev: Event): string {
       </header>
       ${photo ? `<img class="hero" src="${photo}" alt="${title}" />` : ''}
       <div class="desc">${description}</div>
+      ${photoAlbumHtml}
       <p class="meta">Hosts: ${hosts}</p>
     </article>
   `;
@@ -233,6 +272,135 @@ function renderHtml(data: ArchiveOutput): string {
       margin: 12px 0;
       display: block;
     }
+    .photo-album {
+      margin: 16px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 12px;
+    }
+    .album-title {
+      margin: 0 0 12px 0;
+      color: var(--accent);
+      font-size: 1em;
+      font-weight: 600;
+    }
+    .photo-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+    }
+    .gallery-thumb {
+      width: 100%;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+    }
+    .gallery-thumb:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+      box-shadow: 0 4px 12px rgba(76, 194, 255, 0.3);
+    }
+    /* Lightbox Modal */
+    .lightbox {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(10px);
+    }
+    .lightbox-content {
+      position: relative;
+      max-width: 90%;
+      max-height: 90%;
+      margin: 5% auto;
+      display: block;
+    }
+    .lightbox img {
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      max-height: 85vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    .lightbox-close {
+      position: absolute;
+      top: -45px;
+      right: 0;
+      color: var(--text);
+      font-size: 32px;
+      font-weight: bold;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.5);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+    }
+    .lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--accent);
+    }
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text);
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.5);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+      user-select: none;
+    }
+    .lightbox-nav:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--accent);
+    }
+    .lightbox-prev {
+      left: 20px;
+    }
+    .lightbox-next {
+      right: 20px;
+    }
+    @media (max-width: 600px) {
+      .photo-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 6px;
+      }
+      .gallery-thumb {
+        height: 60px;
+      }
+      .lightbox-nav {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+      .lightbox-close {
+        top: -40px;
+        width: 35px;
+        height: 35px;
+        font-size: 24px;
+      }
+    }
     .desc { margin: 8px 0; line-height: 1.5; color: var(--text); }
     .desc h1, .desc h2, .desc h3, .desc h4, .desc h5, .desc h6 {
       font-size: 0.95em;
@@ -319,6 +487,97 @@ function renderHtml(data: ArchiveOutput): string {
   <main>
     ${cards}
   </main>
+
+  <!-- Lightbox Modal -->
+  <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+    <div class="lightbox-content">
+      <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+      <button class="lightbox-nav lightbox-prev" onclick="prevImage()" style="display: none;">&lt;</button>
+      <button class="lightbox-nav lightbox-next" onclick="nextImage()" style="display: none;">&gt;</button>
+      <img id="lightbox-img" src="" alt="Full size photo" />
+    </div>
+  </div>
+
+  <script>
+    let currentImageIndex = 0;
+    let currentAlbumImages = [];
+
+    function openLightbox(imageSrc, imageIndex) {
+      // Get all images from the current album
+      const clickedImage = event.target;
+      const album = clickedImage.closest('.photo-album');
+      const thumbImages = album.querySelectorAll('.gallery-thumb');
+      
+      currentAlbumImages = Array.from(thumbImages).map(img => img.getAttribute('data-full'));
+      currentImageIndex = imageIndex;
+      
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImg = document.getElementById('lightbox-img');
+      
+      lightboxImg.src = imageSrc;
+      lightbox.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+      
+      // Show navigation if there are multiple images
+      const prevBtn = document.querySelector('.lightbox-prev');
+      const nextBtn = document.querySelector('.lightbox-next');
+      if (currentAlbumImages.length > 1) {
+        prevBtn.style.display = 'flex';
+        nextBtn.style.display = 'flex';
+      } else {
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+      }
+      
+      // Prevent background scroll
+      event.stopPropagation();
+    }
+
+    function closeLightbox(event) {
+      // Only close if clicking on background or close button
+      if (!event || event.target.id === 'lightbox' || event.target.classList.contains('lightbox-close')) {
+        const lightbox = document.getElementById('lightbox');
+        lightbox.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
+    }
+
+    function prevImage() {
+      if (currentAlbumImages.length > 1) {
+        currentImageIndex = (currentImageIndex - 1 + currentAlbumImages.length) % currentAlbumImages.length;
+        document.getElementById('lightbox-img').src = currentAlbumImages[currentImageIndex];
+      }
+    }
+
+    function nextImage() {
+      if (currentAlbumImages.length > 1) {
+        currentImageIndex = (currentImageIndex + 1) % currentAlbumImages.length;
+        document.getElementById('lightbox-img').src = currentAlbumImages[currentImageIndex];
+      }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(event) {
+      const lightbox = document.getElementById('lightbox');
+      if (lightbox.style.display === 'block') {
+        if (event.key === 'Escape') {
+          closeLightbox();
+        } else if (event.key === 'ArrowLeft') {
+          prevImage();
+        } else if (event.key === 'ArrowRight') {
+          nextImage();
+        }
+      }
+    });
+
+    // Prevent image dragging
+    document.addEventListener('DOMContentLoaded', function() {
+      const lightboxImg = document.getElementById('lightbox-img');
+      lightboxImg.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+      });
+    });
+  </script>
 </body>
 </html>`;
 }
