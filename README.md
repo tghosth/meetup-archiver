@@ -15,6 +15,7 @@ A TypeScript CLI tool to archive all events from a Meetup.com group using the Me
   - Featured photos
   - Event type (in-person, online, hybrid)
 - ✅ Clean JSON output with metadata
+- ✅ HTML rendering of archived events with formatted descriptions
 - ✅ Rate limiting protection
 - ✅ Progress indicators
 
@@ -230,12 +231,19 @@ meetup-archiver/
 │   ├── index.ts          # Main CLI entry point
 │   ├── meetupClient.ts   # GraphQL API client with pagination
 │   ├── queries.ts        # GraphQL query definitions
+│   ├── renderHtml.ts     # HTML rendering for archived events
 │   ├── types.ts          # TypeScript type definitions
-│   └── utils.ts          # File operations and utilities
+│   ├── utils.ts          # File operations and utilities
+│   └── __tests__/        # Unit and integration tests
+│       ├── meetupClient.test.ts
+│       ├── renderHtml.test.ts
+│       └── utils.test.ts
 ├── output/               # Generated JSON files (created automatically)
+├── output-html/          # Generated HTML files (created automatically)
 ├── .env                  # Your access token (DO NOT COMMIT)
 ├── .env.example          # Template for .env
 ├── .gitignore           # Git ignore rules
+├── jest.config.js       # Jest configuration
 ├── package.json         # Project dependencies
 ├── tsconfig.json        # TypeScript configuration
 └── README.md            # This file
@@ -315,7 +323,10 @@ Tests run on multiple Node.js versions (18.x and 20.x) to ensure compatibility.
 - **Axios** - HTTP client for GraphQL requests
 - **Meetup GraphQL API** - Official Meetup API
 - **dotenv** - Environment variable management
+- **marked** - Markdown parser for rendering event descriptions
+- **sanitize-html** - HTML sanitization for secure rendering
 - **Jest** - Testing framework
+- **ts-jest** - TypeScript support for Jest
 - **ts-jest** - TypeScript support for Jest
 
 ## License
