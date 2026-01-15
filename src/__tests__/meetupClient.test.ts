@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { MeetupClient } from '../meetupClient';
-import { EventStatus } from '../types';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
