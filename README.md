@@ -161,6 +161,8 @@ This will:
 
 ### Output
 
+For a parser reference covering fields, nested connections, embedded photos, and missing data, see [ARCHIVE_FORMAT.md](ARCHIVE_FORMAT.md). This document can be shared with another Codex session.
+
 The tool creates a JSON file in the `output/` directory with this structure:
 
 ```json
